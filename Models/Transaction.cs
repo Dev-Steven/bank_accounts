@@ -15,7 +15,7 @@ namespace bank_accounts.Models
 
         public int UserId {get;set;}
 
-        public DateTime CreatedAt {get;set;}
+        public DateTime CreatedAt {get;set;} = DateTime.Now;
 
         public User Owner {get;set;}
 

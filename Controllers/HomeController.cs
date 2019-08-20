@@ -88,8 +88,14 @@ namespace bank_accounts.Controllers
                     // handle failure (this should be similar to how "existing email" is handled)
                     return View("Index");
                 }
-
-                HttpContext.Session.SetInt32("id",dbContext.Users.Last().UserId);
+                
+                User currentUser = dbContext.Users
+                    .FirstOrDefault(user => user.Email == userSubmission.LoginEmail);  
+                
+                // Now that I have an email, I want to find user with the unique email and grab that user's id
+            
+                HttpContext.Session.SetInt32("id", currentUser.UserId);
+                
                 int? id = HttpContext.Session.GetInt32("id");
 
                 return RedirectToAction("BankAccount", new {id = id});
@@ -111,46 +117,43 @@ namespace bank_accounts.Controllers
             else
             {
                 // This is a list of all users
-                List<Transaction> transactions = dbContext.Transactions
-                        .Include(x => x.Owner)
-                        .Where(trans => trans.UserId == id)
-                        .ToList();
-                ViewBag.transactions = transactions;
-                double sum = 0;
-                foreach(var trans in transactions)
-                {
-                    sum += trans.AmmountDecimal; 
-                }
-                ViewBag.balance = sum;
-            
-                
+        
                 // Can access information about the user logged in
-                User user = dbContext.Users.FirstOrDefault( u => u.UserId == id);
-                ViewBag.userId = (int)id;
-                ViewBag.user = user.FirstName;
-                // had balance here
-                
+                User user = dbContext.Users
+                    .Include(u => u.MyTransactions)
+                    .FirstOrDefault( u => u.UserId == id);
 
-                return View("BankAccount");
+                return View("BankAccount", user);
             }
         }
 
-        [HttpPost("transaction/{id}")]
-        public IActionResult Transaction(Transaction newTrans, int id)
+        [HttpPost("transaction")]
+        public IActionResult Transaction(Transaction newTrans)
         {
+            User user = dbContext.Users
+                .Include(u => u.MyTransactions)
+                .FirstOrDefault( u => u.UserId == newTrans.UserId);
+
             if(ModelState.IsValid)
             {
-                Transaction theTrans = newTrans;
-                dbContext.Add(newTrans);
+                Decimal trans = (decimal)newTrans.AmmountDecimal;
 
-                // Manually assigning UserId from session
-                newTrans.UserId = id;
-                newTrans.CreatedAt = DateTime.Now;
-                dbContext.SaveChanges();
+                if(trans < 0 && Math.Abs(trans) > user.Balance)
+                {
+                    ModelState.AddModelError("AmmountDecimal", "Not enough money");
 
-                return RedirectToAction("BankAccount", new {id=id});
+                    return View("BankAccount", user);
+                }
+                else
+                {
+                    Transaction theTrans = newTrans;
+                    dbContext.Add(newTrans);
+                    dbContext.SaveChanges();
+
+                    return RedirectToAction("BankAccount", new {id=newTrans.UserId});
+                }
             }
-            return View("BankAccount", new {id = id});
+            return View("BankAccount", user);
         }
         
         [HttpGet("logout")]

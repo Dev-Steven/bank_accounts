@@ -2953,6 +2953,11 @@
       "FileKind": "mvc"
     },
     {
+      "FilePath": "Views/Home/NewTransaction.cshtml",
+      "TargetPath": "Views/Home/NewTransaction.cshtml",
+      "FileKind": "mvc"
+    },
+    {
       "FilePath": "Views/Shared/_CookieConsentPartial.cshtml",
       "TargetPath": "Views/Shared/_CookieConsentPartial.cshtml",
       "FileKind": "mvc"

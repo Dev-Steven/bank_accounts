@@ -1,0 +1,10 @@
+@model Transaction
+<div class="row">
+    <form asp-action="Transaction" asp-controller="Home" method="post">
+        <input type="hidden" asp-for="UserId">
+        <span class="text-danger" asp-validation-for="AmmountDecimal"></span>
+        <label asp-for="AmmountDecimal"></label>
+        <input asp-for="AmmountDecimal">
+        <button class="btn btn-primary">Submit</button>
+    </form>
+</div>
